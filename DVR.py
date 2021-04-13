@@ -1,6 +1,12 @@
 import networkx as nx
 import matplotlib.pyplot as plt
 
+def DVR_continous(graph):
+    nodes = graph.nodes
+    edges = graph.edges.data()
+    num_nodes = len(nodes)
+
+# creates initial link state
 def create_graph(data):
     #https://networkx.org/documentation/stable/tutorial.html
     graph = nx.Graph()
@@ -14,16 +20,10 @@ def create_graph(data):
     nx.draw_networkx_edge_labels(graph,pos,edge_labels=labels)
 
     plt.savefig("graph.png")
-
-    #how to individually get elements of graph
-    for element in graph.edges.data():
-        print(element)
-    print(graph.edges.data())
-    print(graph.edges)
-    print(graph.nodes)
+    return graph
 
 
-
+#selects input file
 def select_file():
     parsed_file = []
     while True:
@@ -43,4 +43,9 @@ def select_file():
 
 if __name__ == "__main__":
     file_input = select_file()
-    create_graph(file_input)
+    graph = create_graph(file_input)
+    DVR_continous(graph)
+
+    #how to individually get elements of graph
+    #for element in graph.edges.data():
+        #print(element)
