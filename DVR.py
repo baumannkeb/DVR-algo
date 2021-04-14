@@ -1,10 +1,42 @@
 import networkx as nx
 import matplotlib.pyplot as plt
+import numpy as np
+import time
 
-def DVR_continous(graph):
+def find_node_table(num_nodes, edges, src):
+    dist = [float("Inf")] * num_nodes
+    dist[src-1] = 0
+
+    print(edges)
+
+    #https://www.programiz.com/dsa/bellman-ford-algorithm
+    for _ in range(num_nodes):
+        for s, d, w in edges:
+            if dist[s-1] != float("Inf") and dist[s-1] + w < dist[d-1]:
+                dist[d-1] = dist[s-1] + w
+
+    return dist
+
+#run algorithm without stopping with timer
+def DVR_continous(graph, edges):
+    start_time = time.perf_counter()
     nodes = graph.nodes
-    edges = graph.edges.data()
     num_nodes = len(nodes)
+    print(num_nodes)
+
+    all_dist = []
+    for i in range(num_nodes):
+        print(i)
+        dist = find_node_table(num_nodes, edges, i+1)
+        print(dist)
+        all_dist.append(dist)
+
+    print(all_dist)
+
+    end_time = time.perf_counter()
+    print("Reached stable state in: ", end_time-start_time, "seconds")
+    return all_dist
+
 
 # creates initial link state
 def create_graph(data):
@@ -31,11 +63,15 @@ def select_file():
         try:
             fp = open(file, "r")
             while True:
+                edge = []
                 line = fp.readline()
                 if not line:
                     break
                 line = line.split()
-                parsed_file.append(line)
+                edge.append(int(line[0]))
+                edge.append(int(line[1]))
+                edge.append(float(line[2]))
+                parsed_file.append(edge)
             return parsed_file
         except IOError:
             print("Something went wrong :(")
@@ -44,7 +80,7 @@ def select_file():
 if __name__ == "__main__":
     file_input = select_file()
     graph = create_graph(file_input)
-    DVR_continous(graph)
+    DVR_continous(graph, file_input)
 
     #how to individually get elements of graph
     #for element in graph.edges.data():
