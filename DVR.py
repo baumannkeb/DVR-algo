@@ -9,29 +9,31 @@ def DVR_calc(node):
     dist = all_dist[node]
     #https://www.programiz.com/dsa/bellman-ford-algorithm
     for s, d, w in edges:
-        if dist[s-1] != float("Inf") and dist[s-1] + w < dist[d-1]:
+        if dist[s-1] != 16 and dist[s-1] + w < dist[d-1]:
             dist[d-1] = dist[s-1] + w
     all_dist[node] = dist
 
 # single step mode for DVR algo
 def DVR_singlestep():
     print(edges)
-    for _ in range(len(all_dist)):
+    for _ in range(len(all_dist)-1):
         for i in range(len(all_dist)):
             #print("i: ", i)
             DVR_calc(i)
         print("current all_dist array: ", all_dist)
         input("Press enter to continue....")
+    print("stable state!!")
 
 # continous mode for DVR algo
 def DVR_continous():
     start_time = time.perf_counter()
-    for _ in range(len(all_dist)):
+    for _ in range(len(all_dist)-1):
         for i in range(len(all_dist)):
             #print("i: ", i)
             DVR_calc(i)
 
     end_time = time.perf_counter()
+    print("stable state!!")
     print("Reached stable state in: ", end_time-start_time, "seconds")
     print("final all_dist array: ",all_dist)
 
@@ -42,6 +44,12 @@ def adjust_linkcost():
         print("#", i, ": ",edges[i])
     edge_to_adjust = int(input("What link cost would you like to change?"))
     new_cost = float(input("What would cost would you like to change it to?"))
+    if new_cost == 16:
+        print(edge_to_adjust+1," line down!")
+        old_cost = edges[edge_to_adjust][2]
+        edges[edge_to_adjust][2] = new_cost
+        time.sleep(5)
+        new_cost = old_cost
     edges[edge_to_adjust][2] = new_cost
     DVR_singlestep()
 
@@ -59,7 +67,7 @@ def create_graph():
     nx.draw_networkx_edge_labels(graph,pos,edge_labels=labels)
 
     for i in range(len(graph.nodes)):
-        initial_table = [float("Inf")] * len(graph.nodes)
+        initial_table = [16] * len(graph.nodes)
         initial_table[i] = 0
         all_dist.append(initial_table)
 
