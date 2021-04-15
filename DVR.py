@@ -1,6 +1,11 @@
+#https://pypi.org/project/networkx/
 import networkx as nx
+#pip install matplotlib
 import matplotlib.pyplot as plt
 import time
+import os
+#python -m pip install pysimplegui
+import PySimpleGUI as sg
 
 # DVR algorithm 
 def DVR_calc(node):
@@ -56,8 +61,8 @@ def adjust_linkcost():
 # creates initial graph and initializes a bunch of stuff
 def create_graph():
     #https://networkx.org/documentation/stable/tutorial.html
-    graph = nx.Graph()
     for link in edges:
+        print(link)
         graph.add_edge(link[0], link[1])
         graph[link[0]][link[1]]['weight'] = link[2]
     pos = nx.spring_layout(graph)
@@ -71,19 +76,23 @@ def create_graph():
         initial_table[i] = 0
         all_dist.append(initial_table)
 
+    print(edges)
     print(all_dist)
 
     plt.savefig("graph.png")
-    return graph
+    plt.clf()
 
 
 #selects input file
-def select_file():
-    parsed_file = []
+def select_file(file):
     while True:
-        file = input("Enter the file you want to read from: ")
         try:
             fp = open(file, "r")
+            if os.path.exists("graph.png"):
+                edges.clear()
+                all_dist.clear()
+                graph.clear()
+                os.remove("graph.png")
             while True:
                 edge = []
                 line = fp.readline()
@@ -93,21 +102,65 @@ def select_file():
                 edge.append(int(line[0]))
                 edge.append(int(line[1]))
                 edge.append(float(line[2]))
-                parsed_file.append(edge)
-            return parsed_file
+                edges.append(edge)
+            return True
         except IOError:
-            print("Something went wrong :(")
+            return False
 
+layout_og = [
+    [sg.Text("Enter the text file to read from and press ok"), sg.InputText('', size =(10,1), key='text_file')],
+    [sg.Button("Ok")]
+]
+
+def show_image(success, text_file, window):
+    if success:
+        user_msg = text_file + " opened successfully"
+        create_graph()
+        layout_textfile = [
+            [sg.Text("Enter the text file to read from and press ok"), sg.InputText('', size =(10,1), key='text_file')],
+            [sg.Button("Ok")],
+            [sg.Text(user_msg)],
+            [sg.Image("graph.png")],
+            [sg.Text("Press single step mode or continous mode to start or change a link cost"), sg.Button("Continous"), sg.Button("Single-Step")],
+            [sg.Button("Exit")]
+        ]
+    else:
+        layout_textfile = [
+            [sg.Text("Enter the text file to read from and press ok"), sg.InputText('', size =(10,1), key='text_file')],
+            [sg.Button("Ok")],
+            [sg.Text("File did not open successfully, try again")],
+            [sg.Button("Exit")]
+        ]
+    window1 = sg.Window("Distance Vector Routing simulation", location=location).Layout(layout_textfile)
+    window.close()
+    return window1
+
+def start_GUI():
+    window = sg.Window("Distance Vector Routing simulation", location=location).Layout(layout_og)
+
+    while True:
+        event, values = window.read()
+        if event == "Ok":
+            text_file = values['text_file']
+            success = select_file(text_file)
+            window = show_image(success, text_file, window)
+        elif event == "Continous":
+            DVR_continous()
+        elif event == "Single-Step":
+            DVR_singlestep()
+        elif event == "Exit" or event == sg.WIN_CLOSED:
+            break
+
+    window.close()
 
 if __name__ == "__main__":
+    global location
+    location = (600,600)
     global edges
     edges = []
     global all_dist
     all_dist = []
+    global graph
+    graph = nx.Graph()
 
-    edges = select_file()
-    graph = create_graph()
-    DVR_continous()
-    #DVR_singlestep()
-    adjust_linkcost()
-    print(edges)
+    start_GUI()
