@@ -1,59 +1,52 @@
 import networkx as nx
 import matplotlib.pyplot as plt
 import time
-from multiprocessing import Pool
 
-def DVR_singlestep(node):
-    print("node number: ",node)
+# DVR algorithm 
+def DVR_calc(node):
+    #print("node number: ",node)
 
-    """
+    dist = all_dist[node]
+    #https://www.programiz.com/dsa/bellman-ford-algorithm
     for s, d, w in edges:
         if dist[s-1] != float("Inf") and dist[s-1] + w < dist[d-1]:
             dist[d-1] = dist[s-1] + w
-    """
+    all_dist[node] = dist
 
-def pool_handler():
-    p = Pool(4)
-    for i in range(len(all_dist)):
-        print("i: ", i)
-        result = p.map(DVR_singlestep, all_dist)
-
-"""
-def find_node_table(num_nodes, src):
-    dist = [float("Inf")] * num_nodes
-    dist[src-1] = 0
-
+# single step mode for DVR algo
+def DVR_singlestep():
     print(edges)
+    for _ in range(len(all_dist)):
+        for i in range(len(all_dist)):
+            #print("i: ", i)
+            DVR_calc(i)
+        print("current all_dist array: ", all_dist)
+        input("Press enter to continue....")
 
-    #https://www.programiz.com/dsa/bellman-ford-algorithm
-    for _ in range(num_nodes-1):
-        for s, d, w in edges:
-            if dist[s-1] != float("Inf") and dist[s-1] + w < dist[d-1]:
-                dist[d-1] = dist[s-1] + w
-
-    return dist
-
-#run algorithm without stopping with timer
+# continous mode for DVR algo
 def DVR_continous():
     start_time = time.perf_counter()
-
-    all_dist = []
-    for i in range(len(list_nodes)):
-        print(i)
-        dist = find_node_table(len(list_nodes), i+1)
-        print(dist)
-        all_dist.append(dist)
-
-    print(all_dist)
+    for _ in range(len(all_dist)):
+        for i in range(len(all_dist)):
+            #print("i: ", i)
+            DVR_calc(i)
 
     end_time = time.perf_counter()
     print("Reached stable state in: ", end_time-start_time, "seconds")
-    return all_dist
-"""
+    print("final all_dist array: ",all_dist)
 
-# creates initial link state
+# allows user to change link costs and updates DVs with single step mode
+def adjust_linkcost():
+    print("Links:")
+    for i in range(len(edges)):
+        print("#", i, ": ",edges[i])
+    edge_to_adjust = int(input("What link cost would you like to change?"))
+    new_cost = float(input("What would cost would you like to change it to?"))
+    edges[edge_to_adjust][2] = new_cost
+    DVR_singlestep()
+
+# creates initial graph and initializes a bunch of stuff
 def create_graph():
-    global all_dist
     #https://networkx.org/documentation/stable/tutorial.html
     graph = nx.Graph()
     for link in edges:
@@ -68,7 +61,6 @@ def create_graph():
     for i in range(len(graph.nodes)):
         initial_table = [float("Inf")] * len(graph.nodes)
         initial_table[i] = 0
-        initial_table.insert(0, i+1)
         all_dist.append(initial_table)
 
     print(all_dist)
@@ -107,9 +99,7 @@ if __name__ == "__main__":
 
     edges = select_file()
     graph = create_graph()
-    pool_handler()
-    #DVR_continous()
-
-    #how to individually get elements of graph
-    #for element in graph.edges.data():
-        #print(element)
+    DVR_continous()
+    #DVR_singlestep()
+    adjust_linkcost()
+    print(edges)
