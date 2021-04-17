@@ -41,51 +41,69 @@ def create_table(nodes, weights):
 # DVR algorithm 
 def DVR_calc(node):
     #print("node number: ",node)
+    #print("DVR_calc all_dist:", all_dist)
 
     dist = all_dist[node]
     #https://www.programiz.com/dsa/bellman-ford-algorithm
     for s, d, w in edges:
-        if dist[s-1] != 16 and dist[s-1] + w < dist[d-1]:
-            dist[d-1] = dist[s-1] + w
+        #print(type(dist[s-1]), type(w), type(dist[d-1]))
+        if float(dist[s-1]) != 16 and float(dist[s-1]) + w < float(dist[d-1]):
+            dist[d-1] = float(dist[s-1]) + w
     all_dist[node] = dist
 
 # single step mode for DVR algo
 # TODO: implement single step mode in GUI with the Single-step button to start each step
 # make sure to save number of cycles it took to reach stable state
 def DVR_singlestep():
-    print(edges)
+    #print(edges)
     for _ in range(len(all_dist)-1):
         for i in range(len(all_dist)):
             #print("i: ", i)
             DVR_calc(i)
-        print("current all_dist array: ", all_dist)
+        #print("current all_dist array: ", all_dist)
         input("Press enter to continue....")
-    print("stable state!!")
+    #print("stable state!!")
 
 # continous mode for DVR algo
-def DVR_continous(window):
+def DVR_continous(window, line_down):
+    #print("DVR_cont1 all_dist:", all_dist)
     start_time = time.perf_counter()
     for _ in range(len(all_dist)-1):
         for i in range(len(all_dist)):
             #print("i: ", i)
             DVR_calc(i)
-
+    print("DVR_cont2 all_dist:", all_dist)
     end_time = time.perf_counter()
     runtime = end_time - start_time
 
     table = create_table(graph.nodes, all_dist)
 
-    layout_DVRcont = [
-        [sg.Text("Enter the text file to read from and press ok"), sg.InputText('', size =(10,1), key='text_file')],
-        [sg.Button("Ok")],
-        [sg.Image("graph.png")],
-        [sg.Text("Press single step mode or continous mode to start or change a link cost"), sg.Button("Continous"), sg.Button("Single-Step")],
-        [sg.Text("Stable state reached in " + str(runtime) + " secs")],
-        [sg.Text("Distance Vector Table:")],
-        [sg.Column(table)],
-        [sg.Text("Enter the link cost you want to alter, enter the two nodes at the ends of the link in the first two blanks and the new link cost in the third, press change when done")],
-        [sg.InputText('node 1', size = (10,1), key='node1'), sg.InputText('node 2', size = (10,1), key='node2'), sg.InputText('new weight', size = (10,1), key='new_weight'), sg.Button("Change")],
-        [sg.Button("Exit")]
+    if line_down:
+          layout_DVRcont = [
+            [sg.Text("Enter the text file to read from and press ok"), sg.InputText('', size =(10,1), key='text_file')],
+            [sg.Button("Ok")],
+            [sg.Image("graph.png")],
+            [sg.Text("Distance Vector Table:")],
+            [sg.Column(table)],
+            [sg.Text("To change the a link cost: ")],
+            [sg.Text("Enter the source and destination nodes in the first two blanks and the new link cost in the third, press change when done")],
+            [sg.InputText('source node', size = (10,1), key='node1'), sg.InputText('dest node', size = (10,1), key='node2'), sg.InputText('new weight', size = (10,1), key='new_weight'), sg.Button("Change")],
+            [sg.Text("Line is down! Change the cost back to what it was to fix the line")],
+            [sg.Button("Exit")]
+        ]
+    else:
+        layout_DVRcont = [
+            [sg.Text("Enter the text file to read from and press ok"), sg.InputText('', size =(10,1), key='text_file')],
+            [sg.Button("Ok")],
+            [sg.Image("graph.png")],
+            [sg.Text("Press single step mode or continous mode to start or change a link cost"), sg.Button("Continous"), sg.Button("Single-Step")],
+            [sg.Text("Stable state reached in " + str(runtime) + " secs")],
+            [sg.Text("Distance Vector Table:")],
+            [sg.Column(table)],
+            [sg.Text("To change the a link cost: ")],
+            [sg.Text("Enter the source and destination nodes in the first two blanks and the new link cost in the third, press change when done")],
+            [sg.InputText('source node', size = (10,1), key='node1'), sg.InputText('dest node', size = (10,1), key='node2'), sg.InputText('new weight', size = (10,1), key='new_weight'), sg.Button("Change")],
+            [sg.Button("Exit")]
         ]
 
     window1 = sg.Window("Distance Vector Routing simulation", location=location).Layout(layout_DVRcont)
@@ -93,30 +111,40 @@ def DVR_continous(window):
     return window1
 
 # allows user to change link costs and updates DVs with single step mode
-# TODO: implement changing link cost in gui, check for if link is valid, new cost is 16 and cost is 0-16
-def adjust_linkcost(N1, N2, new_weight):
-    print(N1, N2, new_weight)
-    """
-    print("Links:")
-    for i in range(len(edges)):
-        print("#", i, ": ",edges[i])
-    edge_to_adjust = int(input("What link cost would you like to change?"))
-    new_cost = float(input("What would cost would you like to change it to?"))
-    if new_cost == 16:
-        print(edge_to_adjust+1," line down!")
-        old_cost = edges[edge_to_adjust][2]
-        edges[edge_to_adjust][2] = new_cost
-        time.sleep(5)
-        new_cost = old_cost
-    edges[edge_to_adjust][2] = new_cost
-    DVR_singlestep()
-    """
+def adjust_linkcost(N1, N2, new_cost, window, old_cost):
+    for edge in edges:
+        if edge[0] == int(N1) and edge[1] == int(N2):
+            if new_cost == float(16):
+                old_cost = edge[2]
+                edge[2] = new_cost
+                create_graph()
+                window = DVR_continous(window, True)
+                return window, old_cost
+            elif new_cost == old_cost and edge[2] == float(16):
+                old_cost = -1
+                edge[2] = new_cost
+                create_graph
+                window = DVR_continous(window, False)
+                return window, old_cost
+            else:
+                old_cost = -1
+                edge[2] = new_cost
+                create_graph()
+                window = DVR_continous(window, False)
+                return window, old_cost
+        else:
+            return window, -1
 
 # creates initial graph and initializes a bunch of stuff
 def create_graph():
+    if os.path.exists("graph.png"):
+        all_dist.clear()
+        graph.clear()
+        os.remove("graph.png")
+    #print("create_graph all_dist:", all_dist)
     #https://networkx.org/documentation/stable/tutorial.html
     for link in edges:
-        print(link)
+        #print(link)
         graph.add_edge(link[0], link[1])
         graph[link[0]][link[1]]['weight'] = link[2]
     pos = nx.spring_layout(graph)
@@ -138,11 +166,6 @@ def select_file(file):
     while True:
         try:
             fp = open(file, "r")
-            if os.path.exists("graph.png"):
-                edges.clear()
-                all_dist.clear()
-                graph.clear()
-                os.remove("graph.png")
             while True:
                 edge = []
                 line = fp.readline()
@@ -182,6 +205,8 @@ def show_image(success, text_file, window):
 
 # TODO: display routing table for each node, I kinda jumped the gun with the actual graph but it's a cool feature
 def start_GUI():
+    old_cost = -1
+
     layout_og = [
         [sg.Text("Enter the text file to read from and press ok"), sg.InputText('', size =(10,1), key='text_file')],
         [sg.Button("Ok")],
@@ -196,15 +221,15 @@ def start_GUI():
             success = select_file(text_file)
             window = show_image(success, text_file, window)
         elif event == "Continous":
-            window = DVR_continous(window)
+            window = DVR_continous(window, False)
         elif event == "Single-Step":
             DVR_singlestep()
         elif event == "Change":
             node1 = values['node1']
             node2 = values['node2']
             new_weight = values['new_weight']
-            if node1 and node2 and new_weight:
-                adjust_linkcost(node1, node2, new_weight)
+            if node1 and node2 and new_weight and float(new_weight) >= float(0) and float(new_weight) <= float(16):
+                window, old_cost = adjust_linkcost(int(node1), int(node2), float(new_weight), window, old_cost)
         elif event == "Exit" or event == sg.WIN_CLOSED:
             break
     
