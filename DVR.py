@@ -10,19 +10,22 @@ import os
 #create table
 def create_table(nodes, weights):
     headers = []
+
     for node in nodes:
         headers.append(str(node))
 
     size = len(headers) + 1
-    
+
     data = []
     headers.insert(0, "Nodes")
     data.append(headers)
+
     for i, row in enumerate(weights):
+        new_row = []
         for j, item in enumerate(row):
-            row[j] = str(item)
-        row.insert(0, str(i+1))
-        data.append(row)
+            new_row.append(str(item))
+        new_row.insert(0, str(i+1))
+        data.append(new_row)
 
     table = []
     #https://github.com/PySimpleGUI/PySimpleGUI/issues/3528#issuecomment-715665600
@@ -35,7 +38,6 @@ def create_table(nodes, weights):
                 text_color = 'white', background_color = bg)
             )
         table.append(line)
-
     return table  
 
 # DVR algorithm 
@@ -54,14 +56,49 @@ def DVR_calc(node):
 # single step mode for DVR algo
 # TODO: implement single step mode in GUI with the Single-step button to start each step
 # make sure to save number of cycles it took to reach stable state
-def DVR_singlestep():
+def DVR_singlestep(window, cycle_count):
     #print(edges)
-    for _ in range(len(all_dist)-1):
-        for i in range(len(all_dist)):
-            #print("i: ", i)
-            DVR_calc(i)
-        #print("current all_dist array: ", all_dist)
-        input("Press enter to continue....")
+
+    for i in range(len(all_dist)):
+        #print("i: ", i)
+        DVR_calc(i)
+    cycle_count = cycle_count + 1
+    table = create_table(graph.nodes, all_dist)
+    
+    if cycle_count < (len(all_dist)-1):
+        layout_DVRsingle = [
+            [sg.Text("Enter the text file to read from and press ok"), sg.InputText('', size =(10,1), key='text_file')],
+            [sg.Button("Ok")],
+            [sg.Image("graph.png")],
+            [sg.Text("Press single step mode or continous mode to start or change a link cost"), sg.Button("Continous"), sg.Button("Single-Step")],
+            [sg.Text("Cycle number: " + str(cycle_count))],
+            [sg.Text("Distance Vector Table:")],
+            [sg.Column(table)],
+            [sg.Text("To change the a link cost: ")],
+            [sg.Text("Enter the source and destination nodes in the first two blanks and the new link cost in the third, press change when done")],
+            [sg.InputText('source node', size = (10,1), key='node1'), sg.InputText('dest node', size = (10,1), key='node2'), sg.InputText('new weight', size = (10,1), key='new_weight'), sg.Button("Change")],
+            [sg.Button("Exit")]
+        ]
+    else:
+        layout_DVRsingle = [
+            [sg.Text("Enter the text file to read from and press ok"), sg.InputText('', size =(10,1), key='text_file')],
+            [sg.Button("Ok")],
+            [sg.Image("graph.png")],
+            [sg.Text("Press single step mode or continous mode to start or change a link cost"), sg.Button("Continous"), sg.Button("Single-Step")],
+            [sg.Text("Stable state reached! Cycle number: " + str(len(all_dist)-1))],
+            [sg.Text("Distance Vector Table:")],
+            [sg.Column(table)],
+            [sg.Text("To change the a link cost: ")],
+            [sg.Text("Enter the source and destination nodes in the first two blanks and the new link cost in the third, press change when done")],
+            [sg.InputText('source node', size = (10,1), key='node1'), sg.InputText('dest node', size = (10,1), key='node2'), sg.InputText('new weight', size = (10,1), key='new_weight'), sg.Button("Change")],
+            [sg.Button("Exit")]
+        ]
+
+    window1 = sg.Window("Distance Vector Routing simulation", location=location).Layout(layout_DVRsingle)
+    window.close()
+    return window1, cycle_count
+    #print("current all_dist array: ", all_dist)
+    #input("Press enter to continue....")
     #print("stable state!!")
 
 # continous mode for DVR algo
@@ -72,7 +109,7 @@ def DVR_continous(window, line_down):
         for i in range(len(all_dist)):
             #print("i: ", i)
             DVR_calc(i)
-    print("DVR_cont2 all_dist:", all_dist)
+    #print("DVR_cont2 all_dist:", all_dist)
     end_time = time.perf_counter()
     runtime = end_time - start_time
 
@@ -206,6 +243,7 @@ def show_image(success, text_file, window):
 # TODO: display routing table for each node, I kinda jumped the gun with the actual graph but it's a cool feature
 def start_GUI():
     old_cost = -1
+    cycle_count = 0
 
     layout_og = [
         [sg.Text("Enter the text file to read from and press ok"), sg.InputText('', size =(10,1), key='text_file')],
@@ -223,7 +261,7 @@ def start_GUI():
         elif event == "Continous":
             window = DVR_continous(window, False)
         elif event == "Single-Step":
-            DVR_singlestep()
+            window, cycle_count = DVR_singlestep(window, cycle_count)
         elif event == "Change":
             node1 = values['node1']
             node2 = values['node2']
