@@ -54,8 +54,6 @@ def DVR_calc(node):
     all_dist[node] = dist
 
 # single step mode for DVR algo
-# TODO: implement single step mode in GUI with the Single-step button to start each step
-# make sure to save number of cycles it took to reach stable state
 def DVR_singlestep(window, cycle_count):
     #print(edges)
 
@@ -69,7 +67,7 @@ def DVR_singlestep(window, cycle_count):
         layout_DVRsingle = [
             [sg.Text("Enter the text file to read from and press ok"), sg.InputText('', size =(10,1), key='text_file')],
             [sg.Button("Ok")],
-            [sg.Image("graph.png")],
+            [sg.Image("graph.png"), sg.Button("Routing Tables")],
             [sg.Text("Press single step mode or continous mode to start or change a link cost"), sg.Button("Continous"), sg.Button("Single-Step")],
             [sg.Text("Cycle number: " + str(cycle_count))],
             [sg.Text("Distance Vector Table:")],
@@ -83,7 +81,7 @@ def DVR_singlestep(window, cycle_count):
         layout_DVRsingle = [
             [sg.Text("Enter the text file to read from and press ok"), sg.InputText('', size =(10,1), key='text_file')],
             [sg.Button("Ok")],
-            [sg.Image("graph.png")],
+            [sg.Image("graph.png"), sg.Button("Routing Tables")],
             [sg.Text("Press single step mode or continous mode to start or change a link cost"), sg.Button("Continous"), sg.Button("Single-Step")],
             [sg.Text("Stable state reached! Cycle number: " + str(len(all_dist)-1))],
             [sg.Text("Distance Vector Table:")],
@@ -119,7 +117,7 @@ def DVR_continous(window, line_down):
           layout_DVRcont = [
             [sg.Text("Enter the text file to read from and press ok"), sg.InputText('', size =(10,1), key='text_file')],
             [sg.Button("Ok")],
-            [sg.Image("graph.png")],
+            [sg.Image("graph.png"), sg.Button("Routing Tables")],
             [sg.Text("Distance Vector Table:")],
             [sg.Column(table)],
             [sg.Text("To change the a link cost: ")],
@@ -132,7 +130,7 @@ def DVR_continous(window, line_down):
         layout_DVRcont = [
             [sg.Text("Enter the text file to read from and press ok"), sg.InputText('', size =(10,1), key='text_file')],
             [sg.Button("Ok")],
-            [sg.Image("graph.png")],
+            [sg.Image("graph.png"), sg.Button("Routing Tables")],
             [sg.Text("Press single step mode or continous mode to start or change a link cost"), sg.Button("Continous"), sg.Button("Single-Step")],
             [sg.Text("Stable state reached in " + str(runtime) + " secs")],
             [sg.Text("Distance Vector Table:")],
@@ -149,39 +147,105 @@ def DVR_continous(window, line_down):
 
 # allows user to change link costs and updates DVs with single step mode
 def adjust_linkcost(N1, N2, new_cost, window, old_cost):
+    print(edges)
     for edge in edges:
         if edge[0] == int(N1) and edge[1] == int(N2):
             if new_cost == float(16):
                 old_cost = edge[2]
                 edge[2] = new_cost
+                print(edges)
                 create_graph()
                 window = DVR_continous(window, True)
                 return window, old_cost
             elif new_cost == old_cost and edge[2] == float(16):
                 old_cost = -1
                 edge[2] = new_cost
-                create_graph
+                print(edges)
+                create_graph()
                 window = DVR_continous(window, False)
                 return window, old_cost
             else:
                 old_cost = -1
                 edge[2] = new_cost
+                print(edges)
                 create_graph()
                 window = DVR_continous(window, False)
                 return window, old_cost
-        else:
-            return window, -1
+    return window, -1
+
+def display_routing_tables():
+    data = []
+    cols = 2
+    rows = len(graph.nodes) * len(graph.nodes)
+
+    # node_info is array of arrays of nodes
+    for i, node_info in enumerate(routing_table):
+        source_node = "Next node from source node: " + str((i+1))
+        data.append(["Dest nodes", source_node])
+        # next_node is each individual array inside node_info
+        for j, next_node in enumerate(node_info):
+            print(i,j)
+            print(node_info, next_node)
+            if i != j:
+                if next_node[0] == 0:
+                    data.append([str(j+1), "None"])
+                else:
+                    data.append([str(j+1), str(next_node[1])])
+
+    table = []
+    print(table)
+    #https://github.com/PySimpleGUI/PySimpleGUI/issues/3528#issuecomment-715665600
+    for y in range(0, rows):
+        line = []
+        for x in range(0, cols):
+            bg = 'blue' if (x == 0 ) else 'orange'
+            line.append(
+                sg.Text(data[y][x], size = (30,1), justification = 'c',
+                text_color = 'white', background_color = bg)
+            )
+        table.append(line)
+    print(table)
+    location = (1200, 100)
+    layout = [
+        [sg.Column(table, background_color='black', key='Table')]
+    ]
+
+    window1 = sg.Window('Routing tables',location=location).Layout(layout)
+
+    event, values = window1.read()
+
+    return
+
+# finds the node to go to in order to get to the destination for all nodes
+def find_routing_tables():
+    print(graph.nodes)
+    print(graph.edges)
+    print
+    for src in graph.nodes:
+        path = []
+        for dest in graph.nodes:
+            if src != dest:
+                try:
+                    curr_path = nx.shortest_path(graph, source=src, target=dest, weight='weight')
+                    path.append(curr_path)
+                except:
+                    path.insert(dest-1,[0])
+            else:
+                path.append([0])
+        routing_table.append(path)
+
 
 # creates initial graph and initializes a bunch of stuff
 def create_graph():
     if os.path.exists("graph.png"):
+        routing_table.clear()
         all_dist.clear()
         graph.clear()
         os.remove("graph.png")
     #print("create_graph all_dist:", all_dist)
     #https://networkx.org/documentation/stable/tutorial.html
     for link in edges:
-        #print(link)
+        print(link)
         graph.add_edge(link[0], link[1])
         graph[link[0]][link[1]]['weight'] = link[2]
     pos = nx.spring_layout(graph)
@@ -225,7 +289,7 @@ def show_image(success, text_file, window):
             [sg.Text("Enter the text file to read from and press ok"), sg.InputText('', size =(10,1), key='text_file')],
             [sg.Button("Ok")],
             [sg.Text(user_msg)],
-            [sg.Image("graph.png")],
+            [sg.Image("graph.png"), sg.Button("Routing Tables")],
             [sg.Text("Press single step mode or continous mode to start or change a link cost"), sg.Button("Continous"), sg.Button("Single-Step")],
             [sg.Button("Exit")]
         ]
@@ -258,6 +322,9 @@ def start_GUI():
             text_file = values['text_file']
             success = select_file(text_file)
             window = show_image(success, text_file, window)
+        elif event == "Routing Tables":
+            find_routing_tables()
+            display_routing_tables()
         elif event == "Continous":
             window = DVR_continous(window, False)
         elif event == "Single-Step":
@@ -280,6 +347,8 @@ if __name__ == "__main__":
     edges = []
     global all_dist
     all_dist = []
+    global routing_table
+    routing_table = []
     global graph
     graph = nx.DiGraph()
 
