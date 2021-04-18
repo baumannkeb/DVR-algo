@@ -80,7 +80,6 @@ def DVR_calc(node):
 # Outputs: updated window for GUI
 # Purpose: Finds the Distance Vector Routing information in single step mode for each node
 def DVR_singlestep(window, cycle_count):
-    print(cycle_count)
     # if single step mode has not been run yet
     if cycle_count == 0:
         # clear the all_dist list
