@@ -6,6 +6,7 @@ import matplotlib.pyplot as plt
 import PySimpleGUI as sg
 import time
 import os
+
 # Inputs: nodes of the network, the DVR information calculated
 # Outputs: formatted table for the DVR information
 # Purpose: Formats distance vector routing information into a displayable table for the GUI
@@ -103,9 +104,9 @@ def DVR_singlestep(window, cycle_count):
             [sg.Text("Enter the text file to read from and press ok"), sg.InputText('', size =(10,1), key='text_file')],
             [sg.Button("Ok")],
             [sg.Image("graph.png"), sg.Button("Routing Tables")],
-            [sg.Text("Press single step mode, continous mode, reset or change a link cost"), sg.Button("Continous"), sg.Button("Single-Step"), sg.Button("Reset")],
+            [sg.Text("Press single step mode, continuous mode, reset or change a link cost"), sg.Button("Continuous"), sg.Button("Single-Step"), sg.Button("Reset")],
             [sg.Text("Cycle number: " + str(cycle_count))],
-            [sg.Text("Distance Vector Table:")],
+            [sg.Text("Distance Vector Routing Table:")],
             [sg.Column(table)],
             [sg.Text("To change the a link cost: ")],
             [sg.Text("Enter the source and destination nodes in the first two blanks and the new link cost in the third, press change when done")],
@@ -118,9 +119,9 @@ def DVR_singlestep(window, cycle_count):
             [sg.Text("Enter the text file to read from and press ok"), sg.InputText('', size =(10,1), key='text_file')],
             [sg.Button("Ok")],
             [sg.Image("graph.png"), sg.Button("Routing Tables")],
-            [sg.Text("Press single step mode, continous mode, reset or change a link cost"), sg.Button("Continous"), sg.Button("Single-Step"), sg.Button("Reset")],
+            [sg.Text("Press single step mode, continuous mode, reset or change a link cost"), sg.Button("Continuous"), sg.Button("Single-Step"), sg.Button("Reset")],
             [sg.Text("Stable state reached! Cycle number: " + str(len(all_dist)-1))],
-            [sg.Text("Distance Vector Table:")],
+            [sg.Text("Distance Vector Routing Table:")],
             [sg.Column(table)],
             [sg.Text("To change the a link cost: ")],
             [sg.Text("Enter the source and destination nodes in the first two blanks and the new link cost in the third, press change when done")],
@@ -137,9 +138,9 @@ def DVR_singlestep(window, cycle_count):
 
 # Inputs: window of GUI, boolean value if the line is down or not, the old cost of the link 
 # Outputs: updated window for GUI
-# Purpose: Finds the Distance Vector Routing information in continous mode for each node, also has layout for if a line is down
-def DVR_continous(window, line_down, old_cost):
-    # record the start time of the DVR_continous function
+# Purpose: Finds the Distance Vector Routing information in continuous mode for each node, also has layout for if a line is down
+def DVR_continuous(window, line_down, old_cost):
+    # record the start time of the DVR_continuous function
     start_time = time.perf_counter()
     # The maximum number of times DVR calc will ever need to be run is one less than the number of nodes
     # because the number of edges that could be between the two farthest nodes is one less than the number of nodes
@@ -148,7 +149,7 @@ def DVR_continous(window, line_down, old_cost):
         for i in range(len(all_dist)):
             DVR_calc(i)
     
-    # record the end time after the DVR table has been calculated for all nodes in continous mode
+    # record the end time after the DVR table has been calculated for all nodes in continuous mode
     end_time = time.perf_counter()
     # subtract the endtime and starttime to get the total run time
     runtime = end_time - start_time
@@ -156,14 +157,14 @@ def DVR_continous(window, line_down, old_cost):
     # create the formatted table of DVR values
     table = create_table(graph.nodes, all_dist)
 
-    # if the line is down, display that on the GUI and take away the options of running continous or single step mode
+    # if the line is down, display that on the GUI and take away the options of running continuous or single step mode
     if line_down:
-        #layout for DVR continous and when the line is down
+        #layout for DVR continuous and when the line is down
         layout_DVRcont = [
             [sg.Text("Enter the text file to read from and press ok"), sg.InputText('', size =(10,1), key='text_file')],
             [sg.Button("Ok")],
             [sg.Image("graph.png"), sg.Button("Routing Tables")],
-            [sg.Text("Distance Vector Table:")],
+            [sg.Text("Distance Vector Routing Table:")],
             [sg.Column(table)],
             [sg.Text("To change the a link cost: ")],
             [sg.Text("Enter the source and destination nodes in the first two blanks and the new link cost in the third, press change when done")],
@@ -172,14 +173,14 @@ def DVR_continous(window, line_down, old_cost):
             [sg.Button("Exit")]
         ]
     else:
-        # layout for DVR continous normal
+        # layout for DVR continuous normal
         layout_DVRcont = [
             [sg.Text("Enter the text file to read from and press ok"), sg.InputText('', size =(10,1), key='text_file')],
             [sg.Button("Ok")],
             [sg.Image("graph.png"), sg.Button("Routing Tables")],
-            [sg.Text("Press single step mode, continous mode, reset or change a link cost"), sg.Button("Continous"), sg.Button("Single-Step"), sg.Button("Reset")],
+            [sg.Text("Press single step mode, continuous mode, reset or change a link cost"), sg.Button("Continuous"), sg.Button("Single-Step"), sg.Button("Reset")],
             [sg.Text("Stable state reached in " + str(runtime) + " secs")],
-            [sg.Text("Distance Vector Table:")],
+            [sg.Text("Distance Vector Routing Table:")],
             [sg.Column(table)],
             [sg.Text("To change the a link cost: ")],
             [sg.Text("Enter the source and destination nodes in the first two blanks and the new link cost in the third, press change when done")],
@@ -214,8 +215,8 @@ def adjust_linkcost(N1, N2, new_cost, window, old_cost, changed_N1, changed_N2):
                 edge[2] = new_cost
                 # create a new graph to show the effect of the line being down
                 create_graph()
-                # running DVR continous to update the DVR table
-                window = DVR_continous(window, True, old_cost)
+                # running DVR continuous to update the DVR table
+                window = DVR_continuous(window, True, old_cost)
             # if the user is changing back the down line to the previous cost, the line is being fixed
             elif new_cost == old_cost and edge[2] == float(16) and changed_N1 == N1 and changed_N2 == N2:
                 # setting the old cost back to -1
@@ -228,16 +229,16 @@ def adjust_linkcost(N1, N2, new_cost, window, old_cost, changed_N1, changed_N2):
                 edge[2] = new_cost
                 # create a new graph to show the line being fixed
                 create_graph()
-                # running DVR continous to update the DVR table
-                window = DVR_continous(window, False, 0)
+                # running DVR continuous to update the DVR table
+                window = DVR_continuous(window, False, 0)
             # if the old cost is -1 meaning a line is not currently down, any link can be changed
             elif old_cost == -1:
                 # save the new cost input by the user in the edges list
                 edge[2] = new_cost
                 # create a new graph to show effect of the changed line
                 create_graph()
-                # running DVR continous to update the DVR table
-                window = DVR_continous(window, False, 0)
+                # running DVR continuous to update the DVR table
+                window = DVR_continuous(window, False, 0)
 
     # returning the window for the GUI, the old cost, changed source node and changed dest node to keep track of them
     return window, old_cost, changed_N1, changed_N2
@@ -342,7 +343,7 @@ def create_graph():
         os.remove("graph.png")
     
     # Link below referred to for creating a networkx graph from information
-    #https://networkx.org/documentation/stable/tutorial.html
+    # https://networkx.org/documentation/stable/tutorial.html
     # for each link in the network
     for link in edges:
         # add the edge to the graph
@@ -353,7 +354,7 @@ def create_graph():
     # find the positions of the nodes of the graph
     pos = nx.spring_layout(graph)
     # Link below referred to for plotting the graph information
-    #https://stackoverflow.com/questions/28372127/add-edge-weights-to-plot-output-in-networkx/28372251
+    # https://stackoverflow.com/questions/28372127/add-edge-weights-to-plot-output-in-networkx/28372251
     nx.draw(graph, pos, with_labels = True)
     # creating labels so the edge weights will be visible
     labels = nx.get_edge_attributes(graph,'weight')
@@ -422,7 +423,7 @@ def show_image(success, text_file, window):
             [sg.Button("Ok")],
             [sg.Text(text_file + " opened successfully")],
             [sg.Image("graph.png"), sg.Button("Routing Tables")],
-            [sg.Text("Press single step mode or continous mode to start"), sg.Button("Continous"), sg.Button("Single-Step")],
+            [sg.Text("Press single step mode or continuous mode to start"), sg.Button("Continuous"), sg.Button("Single-Step")],
             [sg.Button("Exit")]
         ]
     else:
@@ -490,10 +491,10 @@ def start_GUI():
             find_routing_tables()
             # display the routing table window 
             display_routing_tables()
-        # if the user presses the "Continous" button
-        elif event == "Continous":
-            # Run the DVR algorithm in continous mode
-            window = DVR_continous(window, False, 0)
+        # if the user presses the "Continuous" button
+        elif event == "Continuous":
+            # Run the DVR algorithm in continuous mode
+            window = DVR_continuous(window, False, 0)
         # if the user presses the "Single-step" button
         elif event == "Single-Step":
             # Run the DVR algorithm in single step mode
