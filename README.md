@@ -6,9 +6,11 @@ matplotlib, and pysimplegui. To download all of these I used pip install network
 install matplotlib, and pip install pysimplegui in the Anaconda3 prompt. The installing
 instructions for all three of these libraries are linked below.
 
-          (https://pypi.org/project/networkx/ "networkx")
-          (https://matplotlib.org/stable/users/installing.html "matplotlib")
-          (https://pypi.org/project/PySimpleGUI/ "pysimplegui")
+[networkx](https://pypi.org/project/networkx/)
+
+[matplotlib](https://matplotlib.org/stable/users/installing.html)
+
+[pysimplegui](https://pypi.org/project/PySimpleGUI/)
           
 After unzipping the directory, navigate to inside the folder and run make. For whatever
 reason if the makefile does not work, use the command python DVR.py in the project
