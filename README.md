@@ -20,8 +20,8 @@ anaconda prompt and it worked well.
 # Test Files
 
 The program will read a plain text input file which will describe the network. Each line will have 3 numbers,
-followed by the cost of the link. For example, a line like "1 2 3" will mean a connection between nodes 1 and 2, 
-with a cost of 3.
+the two node numbers followed by the cost of the link. For example, a line like "1 2 3" will mean
+a connection between nodes 1 and 2, with a cost of 3.
 
 # Text Input
 
