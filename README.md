@@ -7,7 +7,9 @@ install matplotlib, and pip install pysimplegui in the Anaconda3 prompt. The ins
 instructions for all three of these libraries are linked below.
 
           https://pypi.org/project/networkx/
+          
           https://matplotlib.org/stable/users/installing.html
+          
           https://pypi.org/project/PySimpleGUI/
           
 After unzipping the directory, navigate to inside the folder and run make. For whatever
