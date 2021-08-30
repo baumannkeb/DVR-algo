@@ -1,4 +1,4 @@
-# Distance Vector Routing Simulation
+# DVR
 
 # To run
 DVR.py requires a few different python libraries. These libraries are networkx,
